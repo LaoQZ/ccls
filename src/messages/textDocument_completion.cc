@@ -7,8 +7,10 @@
 #include "message_handler.hh"
 #include "pipeline.hh"
 #include "sema_manager.hh"
+#include "utils.hh"
 #include "working_files.hh"
 
+#include <boost/locale/encoding.hpp>
 #include <clang/Sema/CodeCompleteConsumer.h>
 #include <clang/Sema/Sema.h>
 #include <llvm/ADT/Twine.h>
@@ -386,6 +388,11 @@ void buildItem(const CodeCompletionResult &r, const CodeCompletionString &ccs,
       out[i].label += (out[i].label == out[i].filterText ? " : " : " -> ");
       out[i].label += result_type;
     }
+  for (CompletionItem &item : out) {
+    if (!is_valid_utf8(item.documentation))
+      item.documentation =
+          boost::locale::conv::to_utf<char>(item.documentation, "gb18030");
+  }
 }
 
 class CompletionConsumer : public CodeCompleteConsumer {

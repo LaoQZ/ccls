@@ -4,7 +4,9 @@
 #include "message_handler.hh"
 #include "pipeline.hh"
 #include "sema_manager.hh"
+#include "utils.hh"
 
+#include <boost/locale/encoding.hpp>
 #include <clang/Sema/Sema.h>
 
 namespace ccls {
@@ -100,6 +102,8 @@ public:
       const RawComment *rc =
           getCompletionComment(s.getASTContext(), cand.getFunction());
       ls_sig.documentation = rc ? rc->getBriefText(s.getASTContext()) : "";
+      if(ls_sig.documentation.has_value()&&!is_valid_utf8(ls_sig.documentation.value()))
+        ls_sig.documentation = boost::locale::conv::to_utf<char>(ls_sig.documentation.value(),"gb18030");
       for (const auto &chunk : *ccs)
         switch (chunk.Kind) {
         case CodeCompletionString::CK_ResultType:

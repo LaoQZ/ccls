@@ -3,6 +3,8 @@
 
 #include "message_handler.hh"
 #include "query.hh"
+#include "utils.hh"
+#include <boost/locale/encoding.hpp>
 
 namespace ccls {
 namespace {
@@ -53,9 +55,9 @@ getHover(DB *db, LanguageId lang, SymbolRef sym, int file_id) {
       if (d.spell) {
         if (d.comments[0])
           comments = d.comments;
-        if (const char *s =
-                d.hover[0] ? d.hover
-                           : d.detailed_name[0] ? d.detailed_name : nullptr) {
+        if (const char *s = d.hover[0]           ? d.hover
+                            : d.detailed_name[0] ? d.detailed_name
+                                                 : nullptr) {
           if (!hover)
             hover = {languageIdentifier(lang), s};
           else if (strlen(s) > hover->value.size())
@@ -76,6 +78,19 @@ getHover(DB *db, LanguageId lang, SymbolRef sym, int file_id) {
     if (comments)
       ls_comments = MarkedString{std::nullopt, comments};
   });
+
+
+
+  if (ls_comments.has_value()) {
+    if (!is_valid_utf8(ls_comments->value))
+      ls_comments->value =
+          boost::locale::conv::to_utf<char>(ls_comments->value, "gb18030");
+  }
+
+  if (hover.has_value() && ls_comments.has_value()) {
+    hover->value = "/*\n" + ls_comments->value + "\n*/\n" + hover->value;
+    ls_comments = {};
+  }
   return {hover, ls_comments};
 }
 } // namespace

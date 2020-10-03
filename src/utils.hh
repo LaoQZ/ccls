@@ -38,7 +38,7 @@ struct GroupMatch {
 };
 
 uint64_t hashUsr(llvm::StringRef s);
-
+bool is_valid_utf8(const std::string stdstring);
 std::string lowerPathIfInsensitive(const std::string &path);
 
 // Ensures that |path| ends in a slash.

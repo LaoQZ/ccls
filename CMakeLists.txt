@@ -97,6 +97,9 @@ else()
   target_link_libraries(ccls PRIVATE LLVMOption LLVMSupport)
 endif()
 
+
+target_link_libraries(ccls PRIVATE boost_locale)
+
 if(NOT LLVM_ENABLE_RTTI)
   # releases.llvm.org libraries are compiled with -fno-rtti
   # The mismatch between lib{clang,LLVM}* and ccls can make libstdc++ std::make_shared return nullptr
